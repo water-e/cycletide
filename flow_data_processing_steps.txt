@@ -1,0 +1,40 @@
+
+
+(1)Create flow station list (flow_station_list.csv)
+
+(2)Download data from nwis and wdl (D:\control_volume2\flow_data)
+TRN: data available at cdec, but not nwis
+GLC: 11313200(no data from nwis, discontinued stations),113113240 has data, seem to be similar to what we get from cdec, time swift exists, need to be reconciled 
+DLC: 11336600.rdb and DLC.csv
+ODM: 11312968 and ODM.csv
+
+(3) Run "generate_filtered_flow_ts_v3.py" to create input files to Kalman filter runs in R
+(D:\control_volume2\flow_data\kalman_filter_input)
+(the script removes outliers, fills gaps by interpolation, and applies cosine_lanczos filters)
+(3 files generated: ???_flow.dat, ???_flow_2d_filt.dat,???_flow_3d_filt.dat,???_flow_4d_filt.dat)
+
+(4) Apply Kalman filter in R (cv_dlm_M2_O1_K1_S2_Q1_N2_L2_M4_MK3_M6_2MK5_v4.R)
+use M2O1K1S2Q1N2L2_M4MK3M6MK5 model for all stations except VNS
+VNS - use AR1 model instead
+
+batch run:
+$ R CMD BATCH ???fit_flow.R
+
+sample for ???fit_flow.R:
+========================
+source("cv_dlm_M2_O1_K1_S2_Q1_N2_L2_M4_MK3_M6_2MK5_v4.R")
+V <- 1.1
+fit <- fitData("SMR_flow.dat", "SMRfit_flow.dat",
+c(-4.0,-4.0,-4.0,-4.0))
+==================================
+
+Need to run tidal analysis to estimate V: variance of observation data
+The only difficulty is picking an observation error. Unlike stage, which is the same everywhere, flow observation error is probably roughly proportional to flow and flow is different everywhere. If you have no other plans, I suggest something like: 
+max(0.5, max(M2,Z0)*0.04))
+
+Need to check for error messages (in *.Rout) and convergence (=0 in ???fit_flow.dat)
+
+(5) Run R script to plot and write data (???_flow_fit_data.csv)
+prepare_plots.R
+cv_dlm_M2_O1_K1_S2_Q1_N2_L2_M4_MK3_M6_2MK5_v4_plot2.R
+cv_dlm_M2_O1_K1_S2_Q1_N2_L2_M4_MK3_M6_2MK5_v4.R
