@@ -43,25 +43,28 @@ def spectral_density(lambdaf,lambdac,rho,nn,q=None):
     print(denom)
     return leftfrac*num/denom
 
-nlow = 3
-nn = 3
-
-rho = .99
+# These are the order of the trend (nlow) and cyclical (nn) components
+nlow = 2
+nn = 4
+rho = .975
 lambdac = 2.*np.pi/99.
+
+#Frequencies in response plot
 nsample = 10000
 lambdaf = np.linspace(0.,2.*np.pi/16,nsample)  
 
 
-#sdense = spectral_density(lambdaf,lambdac,rho,nn)
-
-sdense0 = lowpass_gain(lambdaf,nlow,q=1)
-sdense1 = spectral_density(lambdaf,1.*lambdac,rho,nn,q=1)
-sdense2 = spectral_density(lambdaf,2.*lambdac,rho,nn,q=1)
+# Get the gains of the components of the model, evaluated at the frequencies in lambdaf
+# Lambdac represents one cycle per day
+sdense0 = lowpass_gain(lambdaf,nlow,q=1.)     # subtidal response
+sdense1 = spectral_density(lambdaf,1.*lambdac,rho,nn,q=1.)   #diurnal
+sdense2 = spectral_density(lambdaf,2.*lambdac,rho,nn,q=1)    # 2* lambdac => semidiurnal
 sdense3 = spectral_density(lambdaf,3.*lambdac,rho,nn,q=1)
 sdense4 = spectral_density(lambdaf,4.*lambdac,rho,nn,q=1)
-sdense5 = spectral_density(lambdaf,.25*lambdac,rho,nn,q=.1)
+sdense5 = spectral_density(lambdaf,.35*lambdac,rho,nn=nn,q=1) # this is an "extra" subtidal
 
-totaldense = sdense0+sdense1+sdense2+sdense3+sdense4 #+sdense5
+# Need to update total density if you change above
+totaldense = sdense0+sdense1+sdense2+sdense3 +sdense4 +sdense5
 sdense0 = sdense0/(totaldense+1.)
 sdense1 = sdense1/(totaldense+1.)
 sdense2 = sdense2/(totaldense+1.)
@@ -76,7 +79,7 @@ plt.plot(lambdaflab,sdense1,label="D1",linewidth=3)
 plt.plot(lambdaflab,sdense2,label="D2")
 plt.plot(lambdaflab,sdense3,label="D3")
 plt.plot(lambdaflab,sdense4,label="D4")
-#plt.plot(lambdaflab,sdense5,label="D5")
+plt.plot(lambdaflab,sdense5,label="D5")
 plt.grid()
 plt.legend()
 plt.show()
